@@ -1,0 +1,4 @@
+cron:
+- description: check for expired Compute Engine instances to delete
+  url: /cron/delete
+  schedule: every 1 hours synchronized
