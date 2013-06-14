@@ -74,8 +74,10 @@ def annotate_instances(instances):
         creation = parse_iso8601tz(inst['creationTimestamp'])
         now = datetime.datetime.now()
         delta = now - creation
-        inst['_age_minutes'] = delta.seconds / 60
-        if not inst['_excluded'] and delta.seconds > (CONFIG['TIMEOUT'] * 60):
+        age_minutes = (delta.days * 24 * 60) + (delta.seconds / 60)
+        inst['_age_minutes'] = age_minutes
+        # >= comparison because seconds are truncated above.
+        if not inst['_excluded'] and age_minutes >= CONFIG['TIMEOUT']:
             inst['_timeout_expired'] = True
         else:
             inst['_timeout_expired'] = False
@@ -158,7 +160,8 @@ def parse_iso8601tz(date_string):
     delta = datetime.timedelta(minutes=int(date_string[-2:]),
                                hours=int(date_string[-5:-3]))
     if date_string[-6] == '-':
-        dt = dt - delta
-    else:
+        # add the delta to return to UTC time
         dt = dt + delta
+    else:
+        dt = dt - delta
     return dt
