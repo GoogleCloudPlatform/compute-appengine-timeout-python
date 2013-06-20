@@ -45,7 +45,7 @@
                 <td>{{i.creationTimestamp}}</td>
                 <td>{{i.machineType.split('/')[-1]}}</td>
                 <td>{{i._excluded}}</td>
-                <td>{{', '.join(i.tags)}}</td>
+                <td>{{', '.join(i._tags)}}</td>
                 <td>{{i.description}}</td>
             </tr>
         {% endfor %}

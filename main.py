@@ -16,6 +16,7 @@
 
 import datetime
 import httplib2
+import json
 import logging
 from pprint import pformat
 
@@ -53,7 +54,7 @@ HTTP = credentials.authorize(httplib2.Http(memcache))
 
 # Build object for the 'v1beta13' version of the GCE API.
 # https://developers.google.com/compute/docs/reference/v1beta13/
-compute = build('compute', 'v1beta13', http=HTTP)
+compute = build('compute', 'v1beta15', http=HTTP)
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader('templates'))
 
@@ -63,7 +64,10 @@ def annotate_instances(instances):
     for inst in instances:
         # set _excluded
         excluded = False
-        for tag in inst.get('tags', []):
+        tags = inst.get('tags', {}).get('items', [])
+        inst['_tags'] = tags
+
+        for tag in tags:
             if tag.lower() in CONFIG['SAFE_TAGS']:
                 excluded = True
                 break
@@ -85,9 +89,13 @@ def annotate_instances(instances):
 
 def list_instances():
     """returns a list of dictionaries containing GCE instance data"""
-    request = compute.instances().list(project=CONFIG['GCE_PROJECT_ID'])
+    request = compute.instances().aggregatedList(project=CONFIG['GCE_PROJECT_ID'])
     response = request.execute()
-    instances = response.get('items', [])
+    zones = response.get('items', {})
+    instances = []
+    for zone in zones.values():
+        for instance in zone.get('instances', []):
+            instances.append(instance)
     annotate_instances(instances)
     return instances
 
@@ -101,7 +109,7 @@ class MainHandler(webapp2.RequestHandler):
         data['config'] = CONFIG
         data['title'] = SAMPLE_NAME
         data['instances'] = instances
-        data['raw_instances'] = pformat(instances)
+        data['raw_instances'] = json.dumps(instances, indent=4, sort_keys=True)
 
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(data))
@@ -119,12 +127,15 @@ def delete_expired_instances():
 
     for instance in instances:
         name = instance['name']
+        zone = instance['zone'].split('/')[-1]
         if CONFIG['DRY_RUN']:
             logging.info("DRY_RUN, not deleted: %s", name)
         else:
             logging.info("DELETE: %s", name)
             request = compute.instances().delete(
-                project=CONFIG['GCE_PROJECT_ID'], instance=name)
+                                    project=CONFIG['GCE_PROJECT_ID'],
+                                    instance=name,
+                                    zone=zone)
             response = request.execute()
             logging.info(response)
 
