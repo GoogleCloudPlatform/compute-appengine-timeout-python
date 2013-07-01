@@ -22,7 +22,7 @@ from pprint import pformat
 
 import jinja2
 import webapp2
-from apiclient.discovery import build
+from apiclient import discovery
 from google.appengine.api import memcache
 from oauth2client.appengine import AppAssertionCredentials
 
@@ -52,9 +52,9 @@ credentials = AppAssertionCredentials(
     scope='https://www.googleapis.com/auth/compute')
 HTTP = credentials.authorize(httplib2.Http(memcache))
 
-# Build object for the 'v1beta13' version of the GCE API.
+# Build object for the 'v1beta15' version of the GCE API.
 # https://developers.google.com/compute/docs/reference/v1beta13/
-compute = build('compute', 'v1beta15', http=HTTP)
+compute = discovery.build('compute', 'v1beta15', http=HTTP)
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader('templates'))
 
