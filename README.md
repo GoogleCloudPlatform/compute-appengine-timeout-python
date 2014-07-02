@@ -7,7 +7,7 @@ This App Engine application monitors your Google Compute Engine instances and de
 
 This sample application demonstrates:
 
- * Using the [Compute Engine API](https://developers.google.com/compute/docs/reference/v1beta13/) from App Engine, specifically: listing instances and deleting instances. The same pattern can be used for other GCE API calls.
+ * Using the [Compute Engine API](https://developers.google.com/compute/docs/reference/latest/) from App Engine, specifically: listing instances and deleting instances. The same pattern can be used for other GCE API calls.
  * [App identity based API authorization](https://developers.google.com/appengine/docs/python/appidentity/overview) from AppEngine - no shared secrets, no passwords, minimal configuration.
 
 You can configure how often the application checks the instances, which tags will be left alone and how long instances are allowed to run before deleting them.
